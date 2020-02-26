@@ -1,0 +1,148 @@
+{% extends "base.html" %} {% block content %}
+
+
+
+<div align="center">
+    <h2>{{message}}</h2>
+        <br>
+    <form id="upload-file" method="post" enctype="multipart/form-data" action="/" >
+       
+  <input type="text" id="fname" name="text" size="50">
+
+<br>
+      
+        <br>
+        <button type="submit"  class="btn btn-primary btn-lg " id="btn-predict" onclick="myFunction()"  >Recommend!</button>
+      
+    </form>
+
+        
+
+
+    <div >
+        <div >
+
+            <div align="center"  >
+                <table >
+                    <tr id="myDIV">
+
+                       
+                        <td></td>
+                        <td></td>
+                        <td >
+                                 <!-- <td ><img src="static/pic11.png" width='250' height='250' alt="" class="design"></td> -->
+                            <img src="{{mainImg}} " width='250' height='250' alt="static/pic11.png" class="design"></td>
+                        <td></td>
+                        <!-- <td ><img src="static/pic1.png" width='400' height='400' alt="" class="design"></td> -->
+
+                        
+                        
+                    </tr>
+                    <br>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td><h4>{{recomHead}} </h4></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <br>
+                    <br>
+                    <tr>
+                        <td> </td>
+                        <td> </td>
+                        <td> </td>
+                        <td> </td>
+                        <td> </td>
+                    </tr>
+                           <tr>
+
+                        <td ><figcaption align="center"><b>{{title[0]}}</b></figcaption> 
+<img src="{{img[0]}} " width='200' height='200' alt="static/images.png" class="design" hspace="20"></td>
+                        <td ><figcaption align="center"><b>{{title[1]}}</b></figcaption><img src="{{img[1]}}" width='200' height='200' alt="static/images.png" class="design" hspace="20"></td>
+                         <td ><figcaption align="center"><b>{{title[2]}}</b></figcaption><img src="{{img[2]}} " width='200' height='200' alt="static/images.png" class="design" hspace="20"></td>
+                        <td ><figcaption align="center"><b>{{title[3]}}</b></figcaption><img src="{{img[3]}}" width='200' height='200' alt="static/images.png" class="design" hspace="20"></td>
+                        <td ><figcaption align="center"><b>{{title[4]}}</b></figcaption><img src="{{img[4]}}" width='200' height='200' alt="static/images.png" class="design" hspace="20"></td>
+                    </tr>
+                       
+
+                        
+                    <!-- </tr> -->
+                </table>
+            </div>
+            
+        </div>
+    </div>
+ 
+    <div class="loader" style="display:none;"></div>
+
+    <h3 id="result">
+        <span> </span>
+    </h3>
+
+</div>
+<!-- <marquee behavior="scroll" direction="left"  width="100%">
+
+                        <img src="static/pic1.png " width='200' height='200' alt="static/images.png" class="design">
+                        <img src="static/pic1.png" width='200' height='200' alt="" class="design">
+                         <img src="static/pic1.png " width='200' height='200' alt="static/images.png" class="design">
+                        <img src="static/pic1.png" width='200' height='200' alt="" class="design">
+                        <img src="static/pic1.png" width='200' height='200' alt="" class="design">
+                        <img src="static/pic1.png" width='200' height='200' alt="" class="design">
+                        <img src="static/pic1.png" width='200' height='200' alt="" class="design">
+                    
+                    </marquee> -->
+<script>
+    {% if (message=="Enter the Movie name" or message=="No Movie Found") %}
+    document.getElementById("myDIV").style.display = "none";
+    // else:
+    {% else %}
+
+        x.style.display = "block";
+
+{% endif %}
+
+    function myFunction() {
+
+  var x = document.getElementById("myDIV");
+
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } 
+  else{
+    x.style.display = "block";
+  }
+}
+</script>
+
+<style>
+    .abc{
+        float: right
+        position: absolute;
+    top: 0;
+    
+    }
+input[type="file"] {
+    display: none;
+}
+.fill {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden
+}
+.fill img {
+    flex-shrink: 0;
+    min-width: 100%;
+    min-height: 100%
+
+}
+.design{
+ border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
+  /*width: 150px;*/
+}
+</style>
+
+{% endblock %}
