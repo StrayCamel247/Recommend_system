@@ -1,0 +1,11 @@
+{% if user.is_authenticated %}
+用户已经登陆：
+{{user}}
+</br>
+用户的年龄
+{% endif %}
+
+小说全部内容：</br>
+{% for novel in novels %}
+{{novel}}</br>
+{% endfor %}

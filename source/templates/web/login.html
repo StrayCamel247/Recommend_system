@@ -1,0 +1,22 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+</head>
+<body>
+
+<h1>登陆界面</h1>
+{#最简单的html代码，哈哈#}
+{#这里要提醒下，提交到后台的get，post方式都可以，但是作为账户数据的话，用post#}
+<form action="/tool/login/" method="post">{%csrf_token%}
+{{error_message}}
+    用户名：<input type="text" name="username"><br>
+    密码：<input type="password" name="password"><br>
+    <input type="submit" value="登陆">
+</form>
+</body>
+</html>
