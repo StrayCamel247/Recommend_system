@@ -42,8 +42,16 @@ This is a simple Recommendation webapp using django web framework.
 ## Data Reprocessing
 
 - Mergement
-    - [ ] merge bookmarks & bookmark_tags, then create a new file sava/book.dat whith headers [id, title, tagID, tagWeight, starts].
-        > 
+    - [ ] Merge bookmarks & bookmark_tags, then create a new file `sava/book.dat` whith headers [id, title, url, tags, tagWeight, starts].
+        > id: The bookmarks' id
+        > title: The bookmarks' title
+        > url: The bookmarks' urlPrincipal
+        > tages: type-List, consist all the ids of this book's tags.
+        > tagweights: Type-list, consist all weights corresponding to the tags'id
+        > starts: Every time a user labels this book, we temporarily consider this book to be liked once, then the starts +1
+        
+- Bag-of-worlds (model)
+    - [ ] Filter the all meaningful words from the titles of the sample book data(2000 books temporarily), then drop the book whose title consists of a large number of non-English and other characters, combine all the words we get into a new file `save/title_bags`.
         
 - Visualization
-    - [ ] visiit `http://127.0.0.1:8000/tool/recommend/` ,which shows all datasets.
+    - [ ] Visiit `http://127.0.0.1:8000/tool/recommend/` ,which shows all datasets.
