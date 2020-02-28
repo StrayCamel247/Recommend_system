@@ -10,6 +10,7 @@ from django.db.models import Case, When
 from .recommendation import Myrecommend
 import numpy as np 
 import pandas as pd
+import os,sys
 
 
 # for recommendation
@@ -39,15 +40,34 @@ def recommend(request):
 	return render(request,'web/recommend.html',{'movie_list':movie_list})
 
 
+class dat_api():
+    '''
+    define the interface to data_files
+    '''
+    def __init__(self,
+    bookmarks_path: 'the path to bookmarks.dat'=os.path.dirname(__file__)+'/data/bookmarks.dat'):
+    #try set connection with dat files
+        try:
+            #acquire the 100 rows data
+            self.bookmarks = pd.read_csv(bookmarks_path, engine='python', nrows=100, sep="\t", encoding='utf-8')
+            # bookmarks'header is ['id','md5','title','url','md5Principal','urlPrincipal'],del row 'md5','md5Principal'
+            self.bookmarks = self.bookmarks.drop(['md5','md5Principal'],axis=1)
+			#acquire 
+        except pd.errors.ParserError as e:
+            print("connect error|pandas Error: %s" % e)
+
 # List view
 def index(request):
+	test = dat_api()
 	novels = Novel.objects.all()
 	query  = request.GET.get('q')
 	if query:
 		novels = Novel.objects.filter(Q(title__icontains=query)).distinct()
 		return render(request,'web/list.html',{'novels':novels})
-	return render(request,'web/list.html',{'novels':novels})
 
+	return render(request,'web/list.html',{'novels':novels,
+											'bookmarks':test.bookmarks,
+	})
 
 # detail view
 def detail(request,movie_id):
@@ -90,7 +110,6 @@ def signUp(request):
 
 
 # Login User
-
 def Login(request):
 	if request.method=="POST":
 		username = request.POST['username']
@@ -112,5 +131,6 @@ def Logout(request):
 	return redirect("login")
 
 
-
+if __name__ == "__main__":
+	print(os.path.dirname(__file__))
 
