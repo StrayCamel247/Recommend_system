@@ -11,7 +11,7 @@ from .recommendation import Myrecommend
 import numpy as np 
 import pandas as pd
 import os,sys
-
+from . import op_api
 
 # for recommendation
 def recommend(request):
@@ -40,25 +40,9 @@ def recommend(request):
 	return render(request,'web/recommend.html',{'movie_list':movie_list})
 
 
-class dat_api():
-    '''
-    define the interface to data_files
-    '''
-    def __init__(self,
-    bookmarks_path: 'the path to bookmarks.dat'=os.path.dirname(__file__)+'/data/bookmarks.dat'):
-    #try set connection with dat files
-        try:
-            #acquire the 100 rows data
-            self.bookmarks = pd.read_csv(bookmarks_path, engine='python', nrows=100, sep="\t", encoding='utf-8')
-            # bookmarks'header is ['id','md5','title','url','md5Principal','urlPrincipal'],del row 'md5','md5Principal'
-            self.bookmarks = self.bookmarks.drop(['md5','md5Principal'],axis=1)
-			#acquire 
-        except pd.errors.ParserError as e:
-            print("connect error|pandas Error: %s" % e)
-
 # List view
 def index(request):
-	test = dat_api()
+	test = op_api.dat_api()
 	novels = Novel.objects.all()
 	query  = request.GET.get('q')
 	if query:

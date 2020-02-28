@@ -42,10 +42,10 @@ This is a simple Recommendation webapp using django web framework.
 ## Data Reprocessing
 
 - Mergement
-    - [ ] Merge bookmarks & bookmark_tags, then create a new file `sava/book.dat` whith headers [id, title, url, tags, tagWeight, starts].
+    - [ ] Merge bookmarks & bookmark_tags, then create a new file `sava/book.dat` whith headers [id, title, urlPrincipal, tags, tagWeight, starts].
         > id: The bookmarks' id
         > title: The bookmarks' title
-        > url: The bookmarks' urlPrincipal
+        > urlPrincipal: The bookmarks' urlPrincipal
         > tages: type-List, consist all the ids of this book's tags.
         > tagweights: Type-list, consist all weights corresponding to the tags'id
         > starts: Every time a user labels this book, we temporarily consider this book to be liked once, then the starts +1
