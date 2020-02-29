@@ -1,4 +1,6 @@
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
+#__author__ : EvaGalois
 import pandas as pd
 import numpy  as np
 import os
@@ -41,14 +43,17 @@ Book['tagID_int']=Book['tagID'].astype(int)
 Book['tagWeight_int']=Book['tagWeight'].astype(int)
 Book = Book.drop(['tagID', 'tagWeight'], axis=1)
 Book = Book.rename(columns={'tagID_int':'tagID', 'tagWeight_int':'tagWeight'})
-# Book.to_csv('book.zip', index=False, compression=dict(method='zip', archive_name='book.csv'))
+# Book.to_csv(os.path.dirname(__file__)+'/save/book.csv', sep=' ', header=True, index=True)
+# Book.to_csv(os.path.dirname(__file__)+'/save/book.zip', index=False, compression=dict(method='zip', archive_name='book.csv'))
 
 user = pd.merge(user_contacts, user_taggedbookmarks, on='userID', how='left')
 User = user.rename(columns={'bookmarkID': 'BookID'})
-# User.to_csv('user.zip', index=False, compression=dict(method='zip', archive_name='user.csv'))
+# User.to_csv(os.path.dirname(__file__)+'/save/user.csv', sep=' ', header=True, index=True)
+# User.to_csv(os.path.dirname(__file__)+'/save/user.zip', index=False, compression=dict(method='zip', archive_name='user.csv'))
 
 Tag = tags.astype({'value':str})
-# Tag.to_csv('tag.zip', index=False, compression=dict(method='zip', archive_name='tag.csv'))
+# Tag.to_csv(os.path.dirname(__file__)+'/save/tag.csv', sep=' ', header=True, index=True)
+# Tag.to_csv(os.path.dirname(__file__)+'/save/tag.zip', index=False, compression=dict(method='zip', archive_name='tag.csv'))
 
 
 print(Book)
