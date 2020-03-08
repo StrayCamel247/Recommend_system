@@ -80,13 +80,11 @@ class CF_CB():
         
         # TBdata: index=self.books,columns=self.tags
         self.TBdata = np.zeros((len(self.tags),len(self.books)))
-        # value = tuple(zip(*list(self.book_tag.values3w
-        # TBdata[rows, cols] = counts
+        
         for b_i,b_v in enumerate(self.book_tag['book']):
             t_v=self.book_tag['given_tag'][b_i]
             self.TBdata[self.tags.index(t_v),self.books.index(b_v)] +=1
         tags_books = pd.DataFrame(self.TBdata,index=self.tags,columns=self.books)
-        print({'user_books':user_books,'users_tags':users_tags,'tags_books':tags_books}.keys())
         self.save_data({'user_books':user_books,'users_tags':users_tags,'tags_books':tags_books})
         print ("----------- 1、load data -----------")
 
@@ -124,6 +122,7 @@ class CF_CB():
                     if d[i_2, j_2] != 0:
                         W[i_2, j_2] = W[i_2, j_2] * c[i_2, j_2] / d[i_2, j_2]
         return W, H 
+    
     def gradAscent(self, 
         alpha:'alpha(float):学习率'=0.0002, 
         beta:'beta(float):正则化参数'=0.02, 
