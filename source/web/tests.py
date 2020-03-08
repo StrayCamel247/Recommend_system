@@ -6,8 +6,11 @@ import sys,os
 import pandas as pd
 import numpy as np
 from django.conf import settings
-# 线程池
-from concurrent.futures import ThreadPoolExecutor
+import multiprocessing
+import threading
+# 定义全局变量Queue
+g_queue = multiprocessing.Queue()
+
 # fix error : _csv.Error: field larger than field limit (131072)
 import csv
 maxInt = sys.maxsize
@@ -31,79 +34,44 @@ class CF_CB():
     Collaborative Filtering + Content-based Filtering
     '''
     def __init__(self):
+        '''
+        books, tags, users 为去重后的list
+        book_tag = {'book':[],'given_tag':[]} 为所有用户历史行为中，book被基于的标签
+        '''
+        self.book_tag = {'book':[],'given_tag':[]}
+        self.books = []
+        self.tags = []
+        self.users = []
         self.load_data()
-    
+        # 多进程或多线程运行池
+        self.process_list = []
+    def run_processes(self):
+        for p in self.process_list:
+            p.start()
+        for p in self.process_list:
+            if p.is_alive():
+                p.join()
     def save_data(self, 
         data: "{'数据名1':'数据1'，'数据名2':'数据2'}",
         )->"保存到tmp/Matrix_factorization文件夹，方便查看":
         def saving(processed_data, path):
             processed_data.to_csv(path, sep='\t', header=True, index=True)
-        executor = ThreadPoolExecutor(max_workers=20)
         for name,data in data:
-            # 利用线程池--concurrent.futures模块来管理多线程：
-            future = executor.submit(saving,data,os.path.dirname(BASE_DIR)+'/tmp/Matrix_factorization'+name+'.csv')
+            path = os.path.dirname(BASE_DIR)+'/tmp/Matrix_factorization'+name+'.csv'
+            if not os.path.exists(path):
+                self.process_list.append(threading.Thread(target=saving, args=(data,path)))
+        self.run_processes()
     
-    def process_data(self):
-        '''
-        初始化所有数据
-        books, tags, users 为去重后的list
-        book_tag = {'book':[],'given_tag':[]} 为所有用户历史行为中，book被基于的标签
-        UBdata: index=users,columns=books
-        UTdata: index=users,columns=tags
-        TBdata: index=books,columns=tags
-        '''
-        book_tag = {'book':[],'given_tag':[]}
-        books = []
-        tags = []
-        user_s = pd.read_csv(os.path.dirname(BASE_DIR)+'/data/users.csv', nrows=5, sep='\t', engine='python', dtype={'history':dict})
-        users = list(user_s['user'])
-        for _ in user_s['history']:
-            try:
-                books.extend(set(_['book']))
-                tags.extend(set(_['given_tag']))
-                book_tag.append(_)
-            except TypeError as e:
-                books.extend(set(eval(_)['book']))
-                tags.extend(set(eval(_)['given_tag']))
-                book_tag['book']+=eval(_)['book']
-                book_tag['given_tag']+=eval(_)['given_tag']
-        books.sort()
-        books = list(set(books))
-        tags.sort()
-        tags = list(set(tags))
-
-        # UBdata: index=users,columns=books
-        UBdata = [[eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['book'].count(int(b)) if b in eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['book']  else 0 for b in books] for u in users]
-        user_books = pd.DataFrame(UBdata,index=users,columns=books)
-
-        # UTdata: index=users,columns=tags
-        UTdata = [[eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['given_tag'].count(int(t)) if t in eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['given_tag']  else 0 for t in tags] for u in users]
-        users_tags = pd.DataFrame(UTdata,index=users,columns=tags)
-        
-        # TBdata: index=books,columns=tags
-        TBdata = np.zeros((len(tags),len(books)))
-        # value = tuple(zip(*list(book_tag.values3w
-        # TBdata[rows, cols] = counts
-        for b_i,b_v in enumerate(book_tag['book']):
-            t_v=book_tag['given_tag'][b_i]
-            TBdata[tags.index(t_v),books.index(b_v)] +=1
-        tags_books = pd.DataFrame(TBdata,index=tags,columns=books)
-
 
     def load_data(self):
         '''
         初始化所有数据
-        self.books, self.tags, self.users 为去重后的list
-        self.book_tag = {'book':[],'given_tag':[]} 为所有用户历史行为中，book被基于的标签
-        self.UBdata: index=users,columns=self.books
-        self.UTdata: index=users,columns=self.tags
-        self.TBdata: index=self.books,columns=self.tags
+        UBdata: index=users,columns=books
+        UTdata: index=users,columns=tags
+        TBdata: index=books,columns=tags
         '''
-        self.book_tag = {'book':[],'given_tag':[]}
-        self.books = []
-        self.tags = []
         user_s = pd.read_csv(os.path.dirname(BASE_DIR)+'/data/users.csv', nrows=5, sep='\t', engine='python', dtype={'history':dict})
-        users = list(user_s['user'])
+        self.users = list(user_s['user'])
         for _ in user_s['history']:
             try:
                 self.books.extend(set(_['book']))
@@ -119,22 +87,23 @@ class CF_CB():
         self.tags.sort()
         self.tags = list(set(self.tags))
 
-        # self.UBdata: index=users,columns=self.books
-        self.UBdata = [[eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['book'].count(int(b)) if b in eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['book']  else 0 for b in self.books] for u in users]
-        user_books = pd.DataFrame(self.UBdata,index=users,columns=self.books)
+        # UBdata: index=self.users,columns=self.books
+        self.UBdata = [[eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['book'].count(int(b)) if b in eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['book']  else 0 for b in self.books] for u in self.users]
+        user_books = pd.DataFrame(self.UBdata,index=self.users,columns=self.books)
 
-        # self.UTdata: index=users,columns=self.tags
-        self.UTdata = [[eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['given_tag'].count(int(t)) if t in eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['given_tag']  else 0 for t in self.tags] for u in users]
-        users_tags = pd.DataFrame(self.UTdata,index=users,columns=self.tags)
+        # UTdata: index=self.users,columns=self.tags
+        self.UTdata = [[eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['given_tag'].count(int(t)) if t in eval(list(user_s.loc[user_s['user'] == u,'history'])[0])['given_tag']  else 0 for t in self.tags] for u in self.users]
+        users_tags = pd.DataFrame(self.UTdata,index=self.users,columns=self.tags)
         
-        # self.TBdata: index=self.books,columns=self.tags
+        # TBdata: index=self.books,columns=self.tags
         self.TBdata = np.zeros((len(self.tags),len(self.books)))
         # value = tuple(zip(*list(self.book_tag.values3w
-        # self.TBdata[rows, cols] = counts
+        # TBdata[rows, cols] = counts
         for b_i,b_v in enumerate(self.book_tag['book']):
             t_v=self.book_tag['given_tag'][b_i]
             self.TBdata[self.tags.index(t_v),self.books.index(b_v)] +=1
-        self.tags_books = pd.DataFrame(self.TBdata,index=self.tags,columns=self.books)
+        tags_books = pd.DataFrame(self.TBdata,index=self.tags,columns=self.books)
+        self.save_data({'user_books':user_books,'users_tags':users_tags,'tags_books':tags_books})
         print ("----------- 1、load data -----------")
 
     def gradAscent(self, 
@@ -154,35 +123,46 @@ class CF_CB():
         # k(int):分解矩阵的参数,分解成两个矩阵 m*k,k*n 
         k = len(self.tags)
         # 2、开始训练
+        # multiprocessing.cpu_count()个进程运行
+        def update_variables(i,j):
+            # 求出每个点的差值
+            error = dataMat[i, j]
+            for r in range(k):
+                error = error - p[i, r] * q[r, j]
+            for r in range(k):
+                # 负梯度的方向更新变量，通过迭代，直到算法最终收敛。
+                try:
+                    p[i, r] = p[i, r] + alpha * (2 * error * q[r, j] - beta * p[i, r])
+                    q[r, j] = q[r, j] + alpha * (2 * error * p[i, r] - beta * q[r, j])
+                except OverflowError:
+                    pass
         for step in range(maxCycles+1):
             for i in range(m):
                 for j in range(n):
                     if dataMat[i, j] > 0:
-                        # 求出每个点的差值
-                        error = dataMat[i, j]
-                        for r in range(k):
-                            error = error - p[i, r] * q[r, j]
-                        for r in range(k):
-                            # 梯度上升
-                            try:
-                                p[i, r] = p[i, r] + alpha * (2 * error * q[r, j] - beta * p[i, r])
-                                q[r, j] = q[r, j] + alpha * (2 * error * p[i, r] - beta * q[r, j])
-                            except OverflowError:
-                                pass
+                        self.process_list.append(multiprocessing.Process(target=update_variables, args=(i,j)))
+                        if len(self.process_list) == multiprocessing.cpu_count():
+                            self.run_processes()
                             
             loss = 0.0
+            # multiprocessing.cpu_count()个进程运行
+            def square_loss(i,j):
+                error = 0.0
+                for r in range(k):
+                    error = error + p[i, r] * q[r, j]
+                # 3、利用square loss计算损失函数
+                loss = (dataMat[i, j] - error) * (dataMat[i, j] - error)
+                #L1正则化是指权值向量w中各个元素的绝对值之和
+                #L2正则化是指权值向量w中各个元素的平方和然后再求平方根
+                for r in range(k):
+                    loss = (loss + beta * (p[i, r] * p[i, r] + q[r, j] * q[r, j])) / 2
+            
             for i in range(m):
                 for j in range(n):
                     if dataMat[i, j] > 0:
-                        error = 0.0
-                        for r in range(k):
-                            error = error + p[i, r] * q[r, j]
-                        # 3、利用square loss计算损失函数
-                        loss = (dataMat[i, j] - error) * (dataMat[i, j] - error)
-                        #L1正则化是指权值向量w中各个元素的绝对值之和
-                        #L2正则化是指权值向量w中各个元素的平方和然后再求平方根
-                        for r in range(k):
-                            loss = (loss + beta * (p[i, r] * p[i, r] + q[r, j] * q[r, j])) / 2
+                        self.process_list.append(multiprocessing.Process(target=square_loss, args=(i,j)))
+                        if len(self.process_list) == multiprocessing.cpu_count():
+                            self.run_processes()
             if loss < 0.001:
                 break
             if step % 10 == 0:
