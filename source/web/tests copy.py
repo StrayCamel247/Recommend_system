@@ -6,8 +6,11 @@ import sys,os
 import pandas as pd
 import numpy as np
 from django.conf import settings
-# 线程池
-from concurrent.futures import ThreadPoolExecutor
+import multiprocessing
+import threading
+# 定义全局变量Queue
+g_queue = multiprocessing.Queue()
+
 # fix error : _csv.Error: field larger than field limit (131072)
 import csv
 maxInt = sys.maxsize
@@ -39,17 +42,35 @@ class CF_CB():
         self.books = []
         self.tags = []
         self.users = []
+        # 多进程或多线程运行池
+        self.process_list = []
         self.load_data()
-    
+        
+
+    def run_processes(self):
+        # init g_queue
+        while not g_queue.empty():
+            g_queue.get()
+        for _index in range(10):
+            g_queue.put(_index)
+        for p in self.process_list:
+            p.start()
+        for p in self.process_list:
+            if p.is_alive():
+                p.join()
+
     def save_data(self, 
         data: "{'数据名1':'数据1'，'数据名2':'数据2'}",
         )->"保存到tmp/Matrix_factorization文件夹，方便查看":
         def saving(processed_data, path):
             processed_data.to_csv(path, sep='\t', header=True, index=True)
-        executor = ThreadPoolExecutor(max_workers=20)
         for name,data in data.items():
-            # 利用线程池--concurrent.futures模块来管理多线程：
-            future = executor.submit(saving,data,os.path.dirname(BASE_DIR)+'/tmp/Matrix_factorization_'+name+'.csv')
+            path = os.path.dirname(BASE_DIR)+'/tmp/Matrix_factorization_'+name+'.csv'
+            if not os.path.exists(path):
+                print("备份数据ing")
+                self.process_list.append(threading.Thread(target=saving, args=(data,path)))
+        self.run_processes()
+    
 
     def load_data(self):
         '''
@@ -90,40 +111,6 @@ class CF_CB():
         self.save_data({'user_books':user_books,'users_tags':users_tags,'tags_books':tags_books})
         print ("----------- 1、load data -----------")
 
-    def train(self,V, r, maxCycles, e):
-        m, n = np.shape(V)
-        # 1、初始化矩阵
-        W = np.mat(np.random.random((m, r)))
-        H = np.mat(np.random.random((r, n)))
-        
-        # 2、非负矩阵分解
-        for step in range(maxCycles):
-            V_pre = W * H
-            E = V - V_pre
-            err = 0.0
-            for i in range(m):
-                for j in range(n):
-                    err += E[i, j] * E[i, j]
-
-            if err < e:
-                break
-            if step % 1000 == 0:
-                print( "\titer: ", step, " loss: " , err)
-
-            a = W.T * V
-            b = W.T * W * H
-            for i_1 in range(r):
-                for j_1 in range(n):
-                    if b[i_1, j_1] != 0:
-                        H[i_1, j_1] = H[i_1, j_1] * a[i_1, j_1] / b[i_1, j_1]
-
-            c = V * H.T
-            d = W * H * H.T
-            for i_2 in range(m):
-                for j_2 in range(r):
-                    if d[i_2, j_2] != 0:
-                        W[i_2, j_2] = W[i_2, j_2] * c[i_2, j_2] / d[i_2, j_2]
-        return W, H 
     def gradAscent(self, 
         alpha:'alpha(float):学习率'=0.0002, 
         beta:'beta(float):正则化参数'=0.02, 
@@ -133,7 +120,6 @@ class CF_CB():
         利用梯度下降法对矩阵进行分解
         '''
         dataMat = np.mat(self.UBdata)
-        # 5*5的矩阵
         m, n = np.shape(dataMat)
         # 1、初始化p和q，分解成两个矩阵 m*k,k*n 
         p = np.mat(self.UTdata)
@@ -141,34 +127,46 @@ class CF_CB():
         # k(int):分解矩阵的参数,分解成两个矩阵 m*k,k*n 
         k = len(self.tags)
         # 2、开始训练
+        # multiprocessing.cpu_count()个进程运行
+        def update_variables(i,j):
+            # 求出每个点的差值
+            error = dataMat[i, j]
+            for r in range(k):
+                error = error - p[i, r] * q[r, j]
+            for r in range(k):
+                # 负梯度的方向更新变量，通过迭代，直到算法最终收敛。
+                try:
+                    p[i, r] = p[i, r] + alpha * (2 * error * q[r, j] - beta * p[i, r])
+                    q[r, j] = q[r, j] + alpha * (2 * error * p[i, r] - beta * q[r, j])
+                except OverflowError:
+                    pass
         for step in range(maxCycles+1):
             for i in range(m):
                 for j in range(n):
                     if dataMat[i, j] > 0:
-                        # 求出每个点的差值
-                        error = dataMat[i, j]
-                        for r in range(k):
-                            error = error - p[i, r] * q[r, j]
-                        for r in range(k):
-                            # 梯度上升
-                            try:
-                                p[i, r] = p[i, r] + alpha * (2 * error * q[r, j] - beta * p[i, r])
-                                q[r, j] = q[r, j] + alpha * (2 * error * p[i, r] - beta * q[r, j])
-                            except OverflowError:
-                                pass
+                        self.process_list.append(multiprocessing.Process(target=update_variables, args=(i,j)))
+                        if len(self.process_list) == multiprocessing.cpu_count():
+                            self.run_processes()
+                            
             loss = 0.0
+            # multiprocessing.cpu_count()个进程运行
+            def square_loss(i,j):
+                error = 0.0
+                for r in range(k):
+                    error = error + p[i, r] * q[r, j]
+                # 3、利用square loss计算损失函数
+                loss = (dataMat[i, j] - error) * (dataMat[i, j] - error)
+                #L1正则化是指权值向量w中各个元素的绝对值之和
+                #L2正则化是指权值向量w中各个元素的平方和然后再求平方根
+                for r in range(k):
+                    loss = (loss + beta * (p[i, r] * p[i, r] + q[r, j] * q[r, j])) / 2
+            
             for i in range(m):
                 for j in range(n):
                     if dataMat[i, j] > 0:
-                        error = 0.0
-                        for r in range(k):
-                            error = error + p[i, r] * q[r, j]
-                        # 3、利用square loss计算损失函数
-                        loss = (dataMat[i, j] - error) * (dataMat[i, j] - error)
-                        #L1正则化是指权值向量w中各个元素的绝对值之和
-                        #L2正则化是指权值向量w中各个元素的平方和然后再求平方根
-                        for r in range(k):
-                            loss = (loss + beta * (p[i, r] * p[i, r] + q[r, j] * q[r, j])) / 2
+                        self.process_list.append(multiprocessing.Process(target=square_loss, args=(i,j)))
+                        if len(self.process_list) == multiprocessing.cpu_count():
+                            self.run_processes()
             if loss < 0.001:
                 break
             if step % 10 == 0:
@@ -218,4 +216,7 @@ class CF_CB():
 if __name__ == "__main__":
     test = CF_CB()
     print(test.top_k())
+    # print(dict(zip([1,2,3],[2,3,4])))
+    # for name in dict(zip([1,2,3],[2,3,4])):
+    #     print(name)
     
