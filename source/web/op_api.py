@@ -7,6 +7,7 @@ import sys,os
 import threading
 # 线程池
 from concurrent.futures import ThreadPoolExecutor
+from django.conf import settings
 import numpy as np 
 import pandas as pd
 import re
@@ -21,7 +22,7 @@ class DataLoad:
     '''
     def __init__(self, dataName):
         try:
-            self.datafile = os.path.dirname(os.path.abspath(__file__)) + '/hetrec2011-delicious-2k/' + dataName + '.dat'
+            self.datafile = os.path.dirname(os.path.abspath(settings.BASE_DIR)) + '/hetrec2011-delicious-2k/' + dataName + '.dat'
             self.table_title = pd.read_table(self.datafile, sep='\t', header=None, nrows=1, engine='python')
             self.table = pd.read_table(self.datafile, sep='\t', header=None, skiprows=[0], names=np.array(self.table_title)[0], engine='python')
         except pd.errors.ParserError as e:
@@ -41,11 +42,11 @@ class PreData_api():
         '/data/tags.csv',
         '/data/users.csv',
     ],
-    bookmarks_path: 'the path to bookmarks.dat' = os.path.dirname(__file__)+'/data/bags_of_title.csv'):
+    bookmarks_path: 'the path to bookmarks.dat' = os.path.dirname(settings.BASE_DIR)+'/data/bags_of_title.csv'):
         self.new_paths = new_paths
         # 若预处理后的文件存在,则无需进行预处理
         for _ in new_paths:
-            path = os.path.dirname(__file__)+_
+            path = os.path.dirname(settings.BASE_DIR)+_
             if not os.path.exists(path):
                 print('Data is not preprocessed completely...')
                 self.generate_preprocessed_files()
@@ -110,7 +111,7 @@ class PreData_api():
         executor = ThreadPoolExecutor(max_workers=20)
         for d,p in zip(data,self.new_paths):
             # 利用线程池--concurrent.futures模块来管理多线程：
-            future = executor.submit(saving,d,os.path.dirname(__file__)+p)
+            future = executor.submit(saving,d,os.path.dirname(settings.BASE_DIR)+p)
         print("Data is preprocessed completely!!!")
     
 if __name__ == "__main__":
