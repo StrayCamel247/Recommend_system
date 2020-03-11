@@ -6,10 +6,15 @@
 🙏🙏🙏🙏
 
 ## 数据格式
-**eval.csv:**
+**eval.csv, train.csv:**
 - headers
-    - `survived,sex,age,n_siblings_spouses,parch,fare,class,deck,embark_town,alone`
-
-**train.csv**
-- headers
-    - `survived,sex,age,n_siblings_spouses,parch,fare,class,deck,embark_town,alone`
+    - survived: 是否获救
+    - sex: 性别
+    - age: 年龄
+    - n_siblings_spouses: 配有（有、有过几个？）
+    - parch: 有没有父母、孩子
+    - fare: 买船票的钱
+    - class: 舱位（高等仓、低等仓……）
+    - deck: 舱的位置
+    - embark_town: 初始港口
+    - alone: 是不是独自一个人
