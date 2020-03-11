@@ -50,7 +50,7 @@ class Matrix_factorization():
         executor = ThreadPoolExecutor(max_workers=20)
         for name,data in data.items():
             # 利用线程池--concurrent.futures模块来管理多线程：
-            future = executor.submit(saving,data,os.path.dirname(BASE_DIR)+'/tmp/Matrix_factorization_'+name+'.csv')
+            future = executor.submit(saving,data,os.path.dirname(BASE_DIR)+'/tmp/Matrix_factorization/'+name+'.csv')
 
     def load_data(self):
         '''

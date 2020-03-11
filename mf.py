@@ -8,11 +8,13 @@ import numpy as np
 import pandas as pd
 
 header = ['user_id', 'item_id', 'rating', 'timestamp']
-df = pd.read_csv(os.path.dirname(__file__)+'/data/movies-ratings.dat', sep='::', names=header,engine='python')
+df = pd.read_csv(os.path.dirname(__file__)+'/ml-1m/ratings.dat', sep='::', names=header,engine='python')
 
 # 计算唯一用户和电影的数量
 test=df.item_id.unique()
 print(test)
+# n_users = 3952
+# n_items = 6040
 n_users = np.max(df.user_id.unique())
 n_items = np.max(df.item_id.unique())
 print('Number of users = ' + str(n_users) + ' | Number of movies = ' + str(n_items))
@@ -35,11 +37,12 @@ for line in test_data.itertuples():
     test_data_matrix[line[1] - 1, line[2] - 1] = line[3]
 
 
-# 使用SVD进行矩阵分解
+# 使用SVD对train_data进行矩阵分解
 import scipy.sparse as sp
 from scipy.sparse.linalg import svds
 
 u, s, vt = svds(train_data_matrix, k=20)
+print(u,s,vt)
 s_diag_matrix = np.diag(s)
 X_pred = np.dot(np.dot(u, s_diag_matrix), vt)
 
