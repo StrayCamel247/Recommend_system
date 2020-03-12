@@ -42,7 +42,7 @@ def recommend(request):
 
 # List view
 def index(request):
-	test = op_api.dat_api()
+	test = op_api.PreData_api()
 	novels = Novel.objects.all()
 	query  = request.GET.get('q')
 	if query:
