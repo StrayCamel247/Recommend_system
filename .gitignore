@@ -1,0 +1,12 @@
+# 不上传data文件夹及所有的文件（学习用）
+data/:
+# 忽略以下文件（推荐系统要用）
+!data/hetrec2011-delicious-2k
+!data/ml-1m
+!data/*.csv
+# 不上传callbacks文件，忽略.ipynb_checkpoints，保留学习记录文件
+learning/:
+!data/*.ipynb
+# 
+**/__pycache__
+**/.DS_Store
