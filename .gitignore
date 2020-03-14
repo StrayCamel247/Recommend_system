@@ -4,9 +4,9 @@ data/:
 !data/hetrec2011-delicious-2k
 !data/ml-1m
 !data/*.csv
-# 不上传callbacks文件，忽略.ipynb_checkpoints，保留学习记录文件
-learning/:
-!data/*.ipynb
+.ipynb_checkpoints/
 # 
 **/__pycache__
 **/.DS_Store    
+models/checkpoints/checkpoint/*.data-00001-of-00002
+models/checkpoints/checkpoint/*.index
