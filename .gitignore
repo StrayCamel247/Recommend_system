@@ -3,6 +3,7 @@ data/:
 # 忽略以下文件（推荐系统要用）
 !data/hetrec2011-delicious-2k
 !data/ml-1m
+!data/BX-CSV-Dump
 !data/*.csv
 .ipynb_checkpoints/
 # 
@@ -10,3 +11,5 @@ data/:
 **/.DS_Store    
 models/checkpoints/checkpoint/*.data-00001-of-00002
 models/checkpoints/checkpoint/*.index
+
+test.py
