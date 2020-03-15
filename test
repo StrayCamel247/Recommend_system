@@ -1,6 +1,0 @@
-了解自然语言处理领域的基础理论和方法 （包括但不限于 N-Gram PCFG L-PCFG HMM CRF MaxEnt
-NLP底层模块的优化
-DNN, CNN, RNN, LSTM
-熟悉面向文本的CNN、RNN、LSTM、Sequence to sequence、GAN等模型者优先；
-究 （包括并不限于分词、词性标注、语法分析、语义分析、情感分析、命名实体识别等）
-熟悉协同过滤、矩阵分解、GBDT、LearningToRank、word2vec、CRF、LSTM等常见算法
