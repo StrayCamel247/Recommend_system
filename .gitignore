@@ -1,12 +1,11 @@
 # 不上传tmp文件夹及所有的文件
-tmp/*.p
 test.py
 .ipynb_checkpoints/
 # python缓存文件
 **/__pycache__
 # 我也不知道是啥的文件
 **/.DS_Store
-**/.p
+*.p
 models/checkpoints/checkpoint/*.data-00001-of-00002
 models/checkpoints/checkpoint/*.index
 
