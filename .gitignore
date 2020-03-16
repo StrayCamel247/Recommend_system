@@ -8,4 +8,5 @@ test.py
 *.p
 models/checkpoints/checkpoint/*.data-00001-of-00002
 models/checkpoints/checkpoint/*.index
-
+# 不上传数据集，将数据集都打包成zip再上传
+data/BX-CSV-Dump
