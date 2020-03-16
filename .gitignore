@@ -5,7 +5,8 @@ test.py
 # python缓存文件
 **/__pycache__
 # 我也不知道是啥的文件
-**/.DS_Store    
+**/.DS_Store
+**/.p
 models/checkpoints/checkpoint/*.data-00001-of-00002
 models/checkpoints/checkpoint/*.index
 
