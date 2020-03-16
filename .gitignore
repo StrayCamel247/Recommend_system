@@ -1,15 +1,11 @@
-# 不上传data文件夹及所有的文件（学习用）
-data/:
-# 忽略以下文件（推荐系统要用）
-!data/hetrec2011-delicious-2k
-!data/ml-1m
-!data/BX-CSV-Dump
-!data/*.csv
+# 不上传origin_DATA文件夹及所有的文件
+tmp/:
+test.py
 .ipynb_checkpoints/
-# 
+# python缓存文件
 **/__pycache__
+# 我也不知道是啥的文件
 **/.DS_Store    
 models/checkpoints/checkpoint/*.data-00001-of-00002
 models/checkpoints/checkpoint/*.index
 
-test.py
