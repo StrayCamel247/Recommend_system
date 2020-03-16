@@ -1,6 +1,4 @@
 # 不上传tmp文件夹及所有的文件
-/tmp:
-/tmp/*.p
 tmp/*.p
 test.py
 .ipynb_checkpoints/
