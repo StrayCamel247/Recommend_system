@@ -1,4 +1,4 @@
-# 不上传origin_DATA文件夹及所有的文件
+# 不上传tmp文件夹及所有的文件
 tmp/:
 test.py
 .ipynb_checkpoints/
