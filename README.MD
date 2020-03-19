@@ -4,7 +4,6 @@ This is a simple Recommendation webapp using django web framework.
 ## Description
 This is a simple Recommendation webapp using django web framework.
 
-
 ## 数据预处理
 > 原始数据
 - BX-Books.csv cloumns: 
