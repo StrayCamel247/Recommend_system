@@ -15,7 +15,6 @@ from nltk.corpus import stopwords
 import threading
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED, FIRST_COMPLETED
 
-
 # 源数据的文件
 ORIGIN_DATA_DIR = os.path.dirname(os.path.dirname(__file__))+'/Data/BX-CSV-Dump/'
 # 缓存文件文件夹
