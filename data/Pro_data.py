@@ -37,7 +37,6 @@ class DataLoad:
         self.BX_Users = self.load_origin('BX-Users')
         self.BX_Book_Ratings = self.load_origin('BX-Book-Ratings')
         self.Books = self.load_origin('books_with_blurbs', ',')
-        
         #合并三个表
         self.features, self.ISBN2int, self.UserID2int, self.Users, self.blurb2vect, self.blurb2int = self.get_features()
         self.labels = self.features.pop('Book-Rating')
