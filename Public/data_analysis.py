@@ -17,5 +17,6 @@ def history_show_loss(history, version):
     plt.legend()
     plt.xlim([0, 15])
     plt.savefig(Config.MODELS_DIR+"{}_model_history.png".format(version))
+    
 # if __name__ == "__main__":
 #     print(Config.FILTERED_DATA_DIR+'model_0_history.p')

@@ -15,5 +15,6 @@ def main(net_model, m_version):
     history = model_history(model, m_version)
     mat_show.history_show_loss(history, m_version)
 # 第一次训练会缓存训练结果到tmp文件夹，如果更改数据重新训练请删除对应的history文件，再运行
+
 # main(model_0, 0)
 main(model_1, 1)

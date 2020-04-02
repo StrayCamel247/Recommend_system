@@ -3,7 +3,7 @@
 #__author__ : stray_camel
 #__date__: 2020/04/02 15:45:40
 #pip_source : https://mirrors.aliyun.com/pypi/simple
-import sys,os
+import sys, os
 # 模型的环境
 import re, pickle
 import numpy as np
@@ -50,13 +50,13 @@ def get_train_val_test():
         title[i] = np.array(features[i, Config.LOCATION_LENTGH])
         # features 总共有7个
         blurb[i] = np.array(features[i, 7])
-    input_features = [features.take(0, 1).astype(np.float64),
-                      location,
-                      features.take(2, 1).astype(np.float64),
-                      title,
-                      features.take(4, 1).astype(np.float64),
-                      features.take(5, 1).astype(np.float64),
-                      features.take(6, 1).astype(np.float64),
+    input_features = [features.take(0, 1).astype(np.float64), 
+                      location, 
+                      features.take(2, 1).astype(np.float64), 
+                      title, 
+                      features.take(4, 1).astype(np.float64), 
+                      features.take(5, 1).astype(np.float64), 
+                      features.take(6, 1).astype(np.float64), 
                       blurb]
     # for i in range(len(input_features)):
     #     print(input_features[i].dtype)
@@ -81,29 +81,29 @@ train_features, train_labels, val_features, val_lables, test_features, test_labl
 
 class Net_works(object):
     def __init__(self, 
-        batch_size=256,
+        batch_size=256, 
         epoch=5):
         self.batchsize = batch_size
         self.epoch = epoch
          # 获取输入占位符
-        user_id, user_location, book_isbn, book_author, book_year, book_publisher, book_title, book_blurb = get_inputs()
+        user_id, user_location, book_isbn, book_title, book_author, book_year, book_publisher, book_blurb = get_inputs()
         # 获取User的2个嵌入向量
-        uid_embed_layer, location_embed_layer = get_user_embedding(user_id,user_location)
+        uid_embed_layer, location_embed_layer = get_user_embedding(user_id, user_location)
         # 得到用户特征
-        user_dense_layer,user_dense_layer_flat =get_user_feature_gru(uid_embed_layer,location_embed_layer)
+        user_dense_layer, user_dense_layer_flat =get_user_feature_gru(uid_embed_layer, location_embed_layer)
         # 获取书籍的嵌入向量
-        book_isbn_embed_layer,book_author_embed_layer,book_year_embed_layer,book_publisher_embed_layer,book_title_embed_layer,book_blurb_embed_layer=get_book_embedding(book_isbn, book_author, book_year, book_publisher, book_title, book_blurb)
+        book_isbn_embed_layer, book_author_embed_layer, book_year_embed_layer, book_publisher_embed_layer, book_title_embed_layer, book_blurb_embed_layer=get_book_embedding(book_isbn, book_author, book_year, book_publisher, book_title, book_blurb)
         # 获取书籍特征
-        book_dense_layer,book_dense_layer_flat=get_book_feature_gru(book_isbn_embed_layer,book_author_embed_layer,book_year_embed_layer,book_publisher_embed_layer,book_title_embed_layer,book_blurb_embed_layer)
+        book_dense_layer, book_dense_layer_flat=get_book_feature_gru(book_isbn_embed_layer, book_author_embed_layer, book_year_embed_layer, book_publisher_embed_layer, book_title_embed_layer, book_blurb_embed_layer)
         
         # 计算出评分
         # 将用户特征和电影特征做矩阵乘法得到一个预测评分的方案
-        print("user_dense_layer_flat=",user_dense_layer_flat.shape)
-        print("book_dense_layer_flat=",book_dense_layer_flat.shape)
-        inference = get_rating(user_dense_layer_flat,book_dense_layer_flat)
+        print("user_dense_layer_flat=", user_dense_layer_flat.shape)
+        print("book_dense_layer_flat=", book_dense_layer_flat.shape)
+        inference = get_rating(user_dense_layer_flat, book_dense_layer_flat)
 
         self.model = tf.keras.Model(
-            inputs=[user_id, user_location, book_isbn, book_title, book_author, book_year, book_publisher, book_blurb],
+            inputs=[user_id, user_location, book_isbn, book_title, book_author, book_year, book_publisher, book_blurb], 
             outputs=[inference])
         self.model.summary()
 

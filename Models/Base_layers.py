@@ -28,13 +28,13 @@ def get_inputs():
     user_id = keras.layers.Input(shape=(1, ), dtype='int32', name='user_id_input')
     user_location = keras.layers.Input(shape=(Config.LOCATION_LENTGH, ), dtype='int32', name='user_location_input')
     # 书籍特征输入
-    book_isbn = keras.layers.Input(shape=(1, ), dtype='int32', name='book_isbn_input')
+    book_isbn = keras.layers.Input(shape=(1, ), dtype='int32', name='book_isbn_input')  
+    book_title = keras.layers.Input(shape=(Config.TITLE_LENGTH, ), dtype='int32', name='book_title_input')
     book_author = keras.layers.Input(shape=(1, ), dtype='int32', name='book_author_input')
     book_year = keras.layers.Input(shape=(1, ), dtype='int32', name='book_year_input')
-    book_publisher = keras.layers.Input(shape=(1, ), dtype='int32', name='book_publisher_input')  
-    book_title = keras.layers.Input(shape=(Config.TITLE_LENGTH, ), dtype='int32', name='book_title_input')
+    book_publisher = keras.layers.Input(shape=(1, ), dtype='int32', name='book_publisher_input')
     book_blurb = keras.layers.Input(shape=(Config.BLURB_LENGTH, ), dtype='int32', name='book_blurb_input')
-    return user_id, user_location, book_isbn, book_author, book_year, book_publisher, book_title, book_blurb
+    return user_id, user_location, book_isbn, book_title, book_author, book_year, book_publisher, book_blurb
 
 # 构建User神经网络
 def get_user_embedding(user_id, user_location):
@@ -155,7 +155,7 @@ def get_book_feature_lstm(b_isbn_embedd, b_author_embedd, b_year_embedd, b_publi
     # 对title进行卷积
     b_title_reshape = keras.layers.Lambda(lambda layer: tf.expand_dims(layer, 3))(b_title_embedd)  # shape=(?,15, 32, 1)
     print('b_title_reshape.shape = ', b_title_reshape.shape)
-    b_title_conv = keras.layers.Conv2D(filters=8, kernel_size=(2, hp.dense_dim), strides=1)(b_title_reshape)# shape=(?, 14, 1, 8)
+    b_title_conv = keras.layers.Conv2D(filters=8, kernel_size=(2, hp.dense_dim//2), strides=1)(b_title_reshape)# shape=(?, 14, 1, 8)
     b_title_pool = keras.layers.MaxPool2D(pool_size=(14, 1), strides=1)(b_title_conv) # shape=(?,1, 1, 8)
     
     # 对blurb进行处理
