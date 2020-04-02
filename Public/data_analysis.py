@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from Public import Config
 
 import matplotlib.pyplot as plt
-def history_show_loss(history):
+def history_show_loss(history, version):
     train_loss = history['loss']
     val_loss = history['val_loss']
     plt.figure(1)
@@ -16,7 +16,6 @@ def history_show_loss(history):
     plt.plot(val_loss, c='b', label='val_loss')
     plt.legend()
     plt.xlim([0, 15])
-    plt.savefig(Config.MODELS_DIR+"/model_0_history.png")
-    plt.show()
+    plt.savefig(Config.MODELS_DIR+"{}_model_history.png".format(version))
 # if __name__ == "__main__":
 #     print(Config.FILTERED_DATA_DIR+'model_0_history.p')

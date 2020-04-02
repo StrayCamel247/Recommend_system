@@ -2,7 +2,7 @@
 集合了协同过滤基础推荐算法框架、nlp自然语言处理分析文本技术，利用tf2、blert工具构建，django/flask可视化
 
 ## Contributors
-🤟💪✍🏄‍♂️
+🤟💪✍🏄‍♂️结识大家，三生有幸，have a bright future fo you。
 - 🤸‍♀️[Stray_Camel](https://github.com/Freen247)
 - 🕵️‍♂️[shange1996](https://github.com/shange1996)
 - 👩‍🎓[lyj1998](https://github.com/lyj1998)
