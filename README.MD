@@ -1,17 +1,17 @@
 # 推荐系统
 集合了协同过滤基础推荐算法框架、nlp自然语言处理分析文本技术，利用tf2、blert工具构建，django/flask可视化
 
-## contributors
+## Contributors
 🤟💪✍🏄‍♂️
 - 🤸‍♀️[Stray_Camel](https://github.com/Freen247)
 - 🕵️‍♂️[shange1996](https://github.com/shange1996)
 - 👩‍🎓[lyj1998](https://github.com/lyj1998)
 - 👩‍💻[EvaGalois](https://github.com/EvaGalois)
-## model_0
-## model_1
-## model_2
-## model_3
-## model_4
+## Model_0
+## Model_1
+## Model_2
+## Model_3
+## Model_4
 
 ## 文件目录概览
 F:\recommend_system>tree /F
