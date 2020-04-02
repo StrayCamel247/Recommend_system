@@ -7,7 +7,21 @@
 - 🕵️‍♂️[shange1996](https://github.com/shange1996)
 - 👩‍🎓[lyj1998](https://github.com/lyj1998)
 - 👩‍💻[EvaGalois](https://github.com/EvaGalois)
+
 ## Model_0
+- 对user
+    - user_id：Embedding-Dense/activation='relu'-concatenate0-Dense-Reshape-user_dense_layer_flat
+user_dense_layer_flat
+    - user_location：Embedding-Dense/activation='relu'-GRU-concatenate0-Dense-Reshape-user_dense_layer_flat
+user_dense_layer_flat
+- 对item：
+    - book_isbn：Embedding-Dense/activation='relu'-concatenate1
+    - book_author：Embedding-Dense/activation='relu'-concatenate1
+    - book_year：Embedding-Dense/activation='relu'-concatenate1
+    - book_publisher：Embedding-Dense/activation='relu'-concatenate1
+    - book_title：Embedding-Dense/activation='relu'-Conv2D（多个窗口）-MaxPooling2D-concatenate0（多次池化后的结果）-Reshape-Dropout-concatenate1
+    - book_blurb：Embedding-Dense/activation='relu'-GRU-concatenate1
+
 ## Model_1
 ## Model_2
 ## Model_3
@@ -17,24 +31,11 @@
 F:\recommend_system>tree /F
 - │  .gitignore                           git上传时自动忽略的文件         
 - │  model_0.ipynb                        
-    - 对user
-        - user_id：Embedding-Dense/activation='relu'-concatenate0-Dense-Reshape-user_dense_layer_flat
-user_dense_layer_flat
-        - user_location：Embedding-Dense/activation='relu'-GRU-concatenate0-Dense-Reshape-user_dense_layer_flat
-user_dense_layer_flat
-    - 对item：
-        - book_isbn：Embedding-Dense/activation='relu'-concatenate1
-        - book_author：Embedding-Dense/activation='relu'-concatenate1
-        - book_year：Embedding-Dense/activation='relu'-concatenate1
-        - book_publisher：Embedding-Dense/activation='relu'-concatenate1
-        - book_title：Embedding-Dense/activation='relu'-Conv2D（多个窗口）-MaxPooling2D-concatenate0（多次池化后的结果）-Reshape-Dropout-concatenate1
-        - book_blurb：Embedding-Dense/activation='relu'-GRU-concatenate1
 - │  model_1.ipynb
 - │  model_1.png                          模型的架构图
 - │  model_2.ipynb
 - │  model_2.png                          模型的架构图
-- │  model_3_bert.py                       
-- │  mv_cf.ipynb                          做过的电影协同推荐系统，模型已应用到model_0
+- │  model_3_bert.py                       s
 - │  常见面试问题收集.ipynb                关于机器学习、nlp、推荐系统等面试问题的手机
 - │
 - ├─Data
@@ -42,8 +43,8 @@ user_dense_layer_flat
 - │  │  books.csv
 - │  │  BX-CSV-Dump.zip                   当前使用的数据集，解压后得到BX-CSV-Dump文件夹，运行项目时请先解压
 - │  │  hetrec2011-delicious-2k.zip       之前用过的数据集1，数据集不够好
-- │  │  Pro_data.ipynb                    数据预处理后的展示
-- │  │  Pro_data.py                       对模型所有需要的数据进行预处理，并封装成对象
+- │  │  Prepro_data.ipynb                    数据预处理后的展示
+- │  │  Prepro_data.py                       对模型所有需要的数据进行预处理，并封装成对象
 - │  │  tags.csv                          之前用过的数据集1，数据集不够好
 - │  │  users.csv                         之前用过的数据集1，数据集不够好
 - │  │  __init__.py

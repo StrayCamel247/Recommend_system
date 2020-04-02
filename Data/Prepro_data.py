@@ -15,15 +15,10 @@ from nltk.corpus import stopwords
 import threading
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED, FIRST_COMPLETED
 
-# 源数据的文件
-ORIGIN_DATA_DIR = os.path.dirname(os.path.dirname(__file__))+'/Data/BX-CSV-Dump/'
-# 缓存文件文件夹
-FILTERED_DATA_DIR = os.path.dirname(os.path.dirname(__file__))+'/Tmp/'
-# location title和blurb的取得长度值
-maxPoolSize = 40
-LOCATION_LENTGH, TITLE_LENGTH, BLURB_LENGTH = 3, 15, 200
 
-class DataLoad:
+maxPoolSize = 40
+
+class DataLoad():
     def __init__(self):
         '''
         books_with_blurbs.csv cloumns: ISBN,text,Author,Year,Publisher,Blurb
@@ -37,7 +32,7 @@ class DataLoad:
         self.BX_Users = self.load_origin('BX-Users')
         self.BX_Book_Ratings = self.load_origin('BX-Book-Ratings')
         self.Books = self.load_origin('books_with_blurbs', ',')
-        #合并三个表
+        #合并三个表，blurb2vect获取将数据转化为index——list之前的样式，但是已经应用了停用词
         self.features, self.ISBN2int, self.UserID2int, self.Users, self.blurb2vect, self.blurb2int = self.get_features()
         self.labels = self.features.pop('Book-Rating')
 
@@ -51,16 +46,16 @@ class DataLoad:
 
         try:
             # 从缓存的文件夹FILTERED_DATA_DIR获取基本被过滤后的文件
-            pickled_data = pickle.load(open(FILTERED_DATA_DIR+filename+'.p', mode='rb'))
+            pickled_data = pickle.load(open(Config.FILTERED_DATA_DIR+filename+'.p', mode='rb'))
             return pickled_data
         except FileNotFoundError:
             # 如果缓存的文件不存在或者没有，则在源目录ORIGIN_DATA_DIR获取
-            all_fearures = pd.read_csv(ORIGIN_DATA_DIR+filename+'.csv', engine='python',sep=sep, encoding='utf-8')
+            all_fearures = pd.read_csv(Config.ORIGIN_DATA_DIR+filename+'.csv', engine='python',sep=sep, encoding='utf-8')
             # \";\"  初始过滤的文件
             # ,      初始不需要过滤的文件
             data_dict = {"\";\"":self.filtrator(all_fearures), ',':all_fearures}
             # 因为没获得处理后的文件，所以我们在获取源文件后可以保存一下处理后的文件
-            pickle.dump((data_dict[sep]), open(FILTERED_DATA_DIR+filename+'.p', 'wb'))
+            pickle.dump((data_dict[sep]), open(Config.FILTERED_DATA_DIR+filename+'.p', 'wb'))
             return data_dict[sep]
         except UnicodeDecodeError as e:
             ''' 测试时经常会出现编码错误，如果尝试更换编码方式无效，可以将编码错误的部分位置重新复制粘贴就可以了，这里我们都默认UTF-8'''
@@ -93,7 +88,7 @@ class DataLoad:
         '''
         try:
             # 从缓存的文件夹FILTERED_DATA_DIR获取features的文件
-            all_fearures, ISBN2int, UserID2int, Users, blurb2vect, blurb2int  = pickle.load(open(FILTERED_DATA_DIR+'features.p', mode='rb'))
+            all_fearures, ISBN2int, UserID2int, Users, blurb2vect, blurb2int  = pickle.load(open(Config.FILTERED_DATA_DIR+'features.p', mode='rb'))
             return all_fearures, ISBN2int, UserID2int, Users, blurb2vect, blurb2int 
         except:
             # 将所有的数据组成features大表
@@ -110,8 +105,8 @@ class DataLoad:
                 executor.submit(self.word2int,all_fearures['Publisher']),
                 executor.submit(self.word2int,all_fearures['Year']),
                 executor.submit(self.word2int,all_fearures['User-ID']),
-                executor.submit(self.list2int,all_fearures['Location'], LOCATION_LENTGH),
-                executor.submit(self.text2int,all_fearures['Title'], TITLE_LENGTH),
+                executor.submit(self.list2int,all_fearures['Location'], Config.LOCATION_LENTGH),
+                executor.submit(self.text2int,all_fearures['Title'], Config.TITLE_LENGTH),
                 ]
             all_fearures['ISBN'], ISBN2int = self.task[0].result()
             all_fearures['Author'], X2int = self.task[1].result()
@@ -120,17 +115,9 @@ class DataLoad:
             all_fearures['User-ID'], UserID2int  = self.task[4].result()
             all_fearures['Location'] = self.task[5].result()
             all_fearures['Title'], x2vect, x2int = self.task[6].result()
-
-            # all_fearures['ISBN'], ISBN2int = self.word2int(all_fearures['ISBN'])
-            # all_fearures['Author'], X2int = self.word2int(all_fearures['Author'])
-            # all_fearures['Publisher'], X2int = self.word2int(all_fearures['Publisher'])
-            # all_fearures['Year'], X2int = self.word2int(all_fearures['Year'])
-            # all_fearures['User-ID'], UserID2int  = self.word2int(all_fearures['User-ID'])
-            # all_fearures['Location'] = self.list2int(all_fearures['Location'], LOCATION_LENTGH)
-            # all_fearures['Title'] = self.text2int(all_fearures['Title'], TITLE_LENGTH)
-            all_fearures['Blurb'], blurb2vect, blurb2int = self.text2int(all_fearures['Blurb'], BLURB_LENGTH)
+            all_fearures['Blurb'], blurb2vect, blurb2int = self.text2int(all_fearures['Blurb'], Config.BLURB_LENGTH)
             all_fearures['Book-Rating'] = all_fearures['Book-Rating'].astype('float32')
-            pickle.dump((all_fearures, ISBN2int, UserID2int, Users, blurb2vect, blurb2int ), open(FILTERED_DATA_DIR+'features.p', 'wb'))
+            pickle.dump((all_fearures, ISBN2int, UserID2int, Users, blurb2vect, blurb2int ), open(Config.FILTERED_DATA_DIR+'features.p', 'wb'))
             return all_fearures, ISBN2int, UserID2int, Users, blurb2vect, blurb2int 
 
     @Config.logging_time
@@ -184,5 +171,6 @@ class DataLoad:
         return feature.map(text2index), feature.map(text2vect), text2int
 
 if __name__ == "__main__":
+    # print(Config.FILTERED_DATA_DIR)
     test = DataLoad()
     print(test.blurb2vect)
