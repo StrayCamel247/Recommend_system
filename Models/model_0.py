@@ -22,62 +22,89 @@ from Public import Config
 # 引入我们构建神经网络所需的层
 try:
     # 当外部调用同目录包的时候需要使用相对路径访问
-    from .Base_layers import get_inputs, get_user_embedding, get_user_feature_gru, get_book_embedding, get_book_feature_gru, get_rating
+    from .train_data import get_train_val_test
+    from .Base_layers import get_inputs, get_rating
 except ModuleNotFoundError:
     # 当本地运行测试的时候，需要使用直接from import，不然会报错ModuleNotFoundError: No module named '__main__.xxxxxx'; '__main__' is not a package
-    from Base_layers import get_inputs, get_user_embedding, get_user_feature_gru, get_book_embedding, get_book_feature_gru, get_rating
-# 引入数据预处理后的数据
+    from train_data import get_train_val_test
+    from Base_layers import get_inputs, get_rating
+    
 from Data import origin_DATA, all_user_id_number, location_length, all_location_words_number, all_isbn_words_number, all_title_words_number, title_length, all_author_words_number, all_year_words_number, all_publisher_words_number, blurb_length, all_blurb_words_number
+
+# 构建User神经网络
+def get_user_embedding(user_id, user_location):
+    uid_embed_layer = tf.keras.layers.Embedding(all_user_id_number, hp.embedding_dim, input_length=1, name='uid_embed_layer')(user_id)
+    location_embed_layer = tf.keras.layers.Embedding(all_location_words_number, hp.embedding_dim, input_length=location_length, name='location_embed_layer')(user_location)
+    return uid_embed_layer, location_embed_layer
+
+def get_user_feature_gru(uid_embed_layer, location_embed_layer):
+    """
+    model_0: 使用gru处理用户信息中的location特征
+    """
+    #第一层全连接
+    uid_fc_layer = tf.keras.layers.Dense(hp.dense_dim, name='uid_fc_layer', activation='relu')(uid_embed_layer)
+    location_fc_layer = tf.keras.layers.Dense(hp.dense_dim, name='location_fc_layer', activation='relu')(location_embed_layer)
+    #对location进行Encoder提取特征
+    location_gru_layer = tf.keras.layers.GRU(units=hp.dense_dim, dropout=hp.dropout_keep, name='location_gru_layer')(location_fc_layer)
+    #[None, 32]
+    print(location_gru_layer.shape)
+    location_gru_expand_layer = tf.expand_dims(location_gru_layer, axis=1)
+    
+    #第二层全连接
+    user_combine_layer = tf.keras.layers.concatenate([uid_fc_layer, location_gru_expand_layer], 2)
+    user_dense_layer = tf.keras.layers.Dense(Config.BLURB_LENGTH, activation='tanh', name='user_dense_layer')(user_combine_layer)
+    user_dense_layer_flat = tf.keras.layers.Reshape([Config.BLURB_LENGTH], name="user_combine_layer_flat")(user_dense_layer)
+    return user_dense_layer, user_dense_layer_flat
+
+# 构建Book神经网络
+def get_book_embedding(book_isbn, book_author, book_year, book_publisher, book_title, book_blurb):
+    book_isbn_embed_layer = tf.keras.layers.Embedding(all_isbn_words_number, hp.embedding_dim, input_length = 1, name='book_isbn_embed_layer')(book_isbn)
+    book_author_embed_layer = tf.keras.layers.Embedding(all_author_words_number, hp.embedding_dim, input_length=1, name='book_author_embed_layer')(book_author)
+    book_year_embed_layer = tf.keras.layers.Embedding(all_year_words_number, hp.embedding_dim, input_length=1, name='book_year_embed_layer')(book_year)
+    book_publisher_embed_layer = tf.keras.layers.Embedding(all_publisher_words_number, hp.embedding_dim, input_length = 1, name='book_publisher_embed_layer')(book_publisher)
+
+    book_title_embed_layer = tf.keras.layers.Embedding(all_title_words_number, hp.embedding_dim, input_length=title_length, name='book_title_embed_layer')(book_title)
+    book_blurb_embed_layer = tf.keras.layers.Embedding(all_blurb_words_number, hp.embedding_dim, input_length = blurb_length, name='book_blurb_embed_layer')(book_blurb)
+    return book_isbn_embed_layer, book_author_embed_layer, book_year_embed_layer, book_publisher_embed_layer, book_title_embed_layer, book_blurb_embed_layer
+
+def get_book_feature_gru(book_isbn_embed_layer, book_author_embed_layer, book_year_embed_layer, book_publisher_embed_layer, book_title_embed_layer, book_blurb_embed_layer):
+    """
+    model_0: 使用gru处理书籍信息中的blurb特征
+    """
+    #  对isbn, author, year, publisher第一层全连接
+    book_isbn_dense_layer = tf.keras.layers.Dense(hp.dense_dim, activation='relu', name='book_isbn_dense_layer')(book_isbn_embed_layer)
+    book_author_dense_layer = tf.keras.layers.Dense(hp.dense_dim, activation='relu', name='book_author_dense_layer')(book_author_embed_layer)
+    book_year_dense_layer = tf.keras.layers.Dense(hp.dense_dim, activation='relu', name='book_year_dense_layer')(book_year_embed_layer)
+    book_publisher_dense_layer = tf.keras.layers.Dense(hp.dense_dim, activation='relu', name='book_publisher_dense_layer')(book_publisher_embed_layer)
+    book_title_embed_layer_expand = tf.expand_dims(book_title_embed_layer, axis=-1)
+    #  对title进行文本卷积
+    #  book_title_embed_layer_expand:[None, 15, 16, 1]
+    #  对文本嵌入层使用不同的卷积核做卷积核最大池化
+    pool_layer_list = []
+    for window_size in hp.window_sizes:
+        title_conv_layer = tf.keras.layers.Conv2D(filters = hp.filter_num, kernel_size = (window_size, hp.embedding_dim), strides=1, activation='relu')(book_title_embed_layer_expand)
+        title_maxpool_layer = tf.keras.layers.MaxPooling2D(pool_size=(title_length-window_size+1, 1), strides=1)(title_conv_layer)
+        pool_layer_list.append(title_maxpool_layer)
+    pool_layer_layer = tf.keras.layers.concatenate(pool_layer_list, axis=-1, name='title_pool_layer')
+    max_num = len(hp.window_sizes)*hp.filter_num
+    pool_layer_flat = tf.keras.layers.Reshape([1, max_num], name='pool_layer_flat')(pool_layer_layer)
+    dropout_layer = tf.keras.layers.Dropout(hp.dropout_keep, name = "dropout_layer")(pool_layer_flat)
+
+    # 对简介进行Encoder特征提取
+    book_blurb_dense_layer = tf.keras.layers.Dense(hp.dense_dim, activation='relu', name='book_blurb_dense_layer')(book_blurb_embed_layer)
+    book_blurb_gru_layer = tf.keras.layers.GRU(units=hp.dense_dim, dropout=hp.dropout_keep, name='book_blurb_gru_layer')(book_blurb_dense_layer)
+    print('book_blurb_gru_layer=', book_blurb_gru_layer.shape)
+    book_blurb_gru_expand_layer = tf.expand_dims(book_blurb_gru_layer, axis=1)
+    book_combine_layer = tf.keras.layers.concatenate([book_isbn_dense_layer, book_author_dense_layer, book_year_dense_layer, book_publisher_dense_layer, dropout_layer, book_blurb_gru_expand_layer], axis=-1)
+    book_dense_layer = tf.keras.layers.Dense(Config.BLURB_LENGTH, activation='tanh')(book_combine_layer)
+    book_dense_layer_flat = tf.keras.layers.Reshape([Config.BLURB_LENGTH], name="book_dense_layer_flat")(book_dense_layer)
+    return book_dense_layer, book_dense_layer_flat
 
 # 定义好我们所需要的所有features和targets
 features = origin_DATA.features.values
-targets=origin_DATA.labels.values
+targets = origin_DATA.labels.values
 
-"""
-模型0
-"""
-
-
-import math
-f_length = len(features)
-
-def get_train_val_test():
-    location = np.zeros([f_length, Config.LOCATION_LENTGH])
-    title = np.zeros([f_length, Config.TITLE_LENGTH])
-    blurb = np.zeros([f_length, Config.BLURB_LENGTH])
-    for i in range(f_length):
-        location[i] = np.array(features[i, 1])
-        title[i] = np.array(features[i, Config.LOCATION_LENTGH])
-        # features 总共有7个
-        blurb[i] = np.array(features[i, 7])
-    input_features = [features.take(0, 1).astype(np.float64), 
-                      location, 
-                      features.take(2, 1).astype(np.float64), 
-                      title, 
-                      features.take(4, 1).astype(np.float64), 
-                      features.take(5, 1).astype(np.float64), 
-                      features.take(6, 1).astype(np.float64), 
-                      blurb]
-    # for i in range(len(input_features)):
-    #     print(input_features[i].dtype)
-    #     print(type(input_features[i]))
-    labels = targets
-    #     分割数据集以及shuffle
-    np.random.seed(100)
-    number_features = len(input_features)
-    shuffle_index = np.random.permutation(f_length)
-    shuffle_train_index = shuffle_index[:math.ceil(f_length * 0.96)]
-    shuffle_val_index = shuffle_index[math.ceil(f_length * 0.96):math.ceil(f_length * 0.98)]
-    shuffle_test_index = shuffle_index[math.ceil(f_length * 0.98):]
-    train_features = [input_features[i][shuffle_train_index] for i in range(number_features)]
-    train_labels = labels[shuffle_train_index]
-    val_features = [input_features[i][shuffle_val_index] for i in range(number_features)]
-    val_lables = labels[shuffle_val_index]
-    test_features = [input_features[i][shuffle_test_index] for i in range(number_features)]
-    test_lables = labels[shuffle_test_index]
-    return train_features, train_labels, val_features, val_lables, test_features, test_lables
-
-train_features, train_labels, val_features, val_lables, test_features, test_lables = get_train_val_test()
+train_features, train_labels, val_features, val_lables, test_features, test_lables = get_train_val_test(features, targets)
 
 class Net_works(object):
     def __init__(self, 
