@@ -153,16 +153,16 @@ class DataLoad():
         letter_filter = lambda feature:feature.map({val:re.sub(pattern, ' ', str(val)) for ii,val in enumerate(set(feature)) })
         text_words = set()
         filtered_feature = letter_filter(feature)
-        for val in filtered_feature.str.split(' '):
+        for val in filtered_feature.str.strip('').str.split():
             # self.task.append(executor.submit(lambda val,stop_words:text_words.update(set(_ for _ in val if _ not in stop_words)),val,stop_words))
             text_words.update(set(_ for _ in val if _ not in stop_words))
         # 让text_words继续运行，主线程阻塞等待运行完成
         # wait(self.task, return_when=ALL_COMPLETED)
         text_words.add('<PAD>')
         text2int = {val:ii for ii, val in enumerate(text_words)}
-        text2index = {val:[text2int[row] for row in filtered_map[val].split() if row in text2int][:length] for ii,val in enumerate(set(feature))}
+        text2index = {val:[text2int[row] for row in filtered_map[val].strip('').split() if row in text2int][:length] for ii,val in enumerate(set(feature))}
         # word2vect 长度不截取，把过滤后的简介返回
-        text2vect = {val:[row for row in filtered_map[val].split() if row in text2int] for ii,val in enumerate(set(feature))}
+        text2vect = {val:[row for row in filtered_map[val].strip('').split() if row in text2int] for ii,val in enumerate(set(feature))}
 
         for key in text2index:
             for cnt in range(length - len(text2index[key])):
