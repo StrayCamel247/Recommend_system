@@ -16,16 +16,28 @@ from Public import Config
 # 引入数据预处理后的数据
 import math
 
-def get_train_val_test(features, targets):
+
+def get_train_val_test(features, targets, model=None):
     f_length = len(features)
     location = np.zeros([f_length, Config.LOCATION_LENTGH])
     title = np.zeros([f_length, Config.TITLE_LENGTH])
-    blurb = np.zeros([f_length, Config.BLURB_LENGTH])
+
+    if model is not None:
+        (key, value), = model.items()
+        if key == 'model_2':
+            blurb = value
+    else:
+        blurb = np.zeros([f_length, Config.BLURB_LENGTH])
     for i in range(f_length):
         location[i] = np.array(features[i, 1])
         title[i] = np.array(features[i, Config.LOCATION_LENTGH])
         # features 总共有7个
-        blurb[i] = np.array(features[i, 7])
+        if model is not None:
+            (key, value), = model.items()
+            if key == 'model_2':
+                blurb = value
+        else:
+            blurb[i] = np.array(features[i, 7])
     input_features = [features.take(0, 1).astype(np.float64), 
                       location, 
                       features.take(2, 1).astype(np.float64), 
