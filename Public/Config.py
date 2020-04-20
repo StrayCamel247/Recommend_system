@@ -19,6 +19,8 @@ def logging_time(func):
 
 # 源数据的文件
 ORIGIN_DATA_DIR = os.path.dirname(os.path.dirname(__file__))+'/Data/BX-CSV-Dump/'
+# Data文件夹
+DATA_DIR = os.path.dirname(os.path.dirname(__file__))+'/Data/'
 # 缓存文件文件夹
 FILTERED_DATA_DIR = os.path.dirname(os.path.dirname(__file__))+'/Tmp/'
 # 模型存放文件
