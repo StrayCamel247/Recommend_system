@@ -8,7 +8,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from Public import Config
 import numpy as np
 import pandas as pd
+import zipfile
 import nltk
+try:
+    nltk.download('stopwords')
+    # raise LookupError('test')
+except LookupError:
+    print('↓'*30)
+    print('不好意思你被墙了，请离线下载nltk的数据集')
+    print('↑'*30)
 import math
 from nltk.corpus import stopwords
 # 线程池
@@ -50,7 +58,14 @@ class DataLoad():
             return pickled_data
         except FileNotFoundError:
             # 如果缓存的文件不存在或者没有，则在源目录ORIGIN_DATA_DIR获取
-            all_fearures = pd.read_csv(Config.ORIGIN_DATA_DIR+filename+'.csv', engine='python',sep=sep, encoding='utf-8')
+            try:
+                all_fearures = pd.read_csv(Config.ORIGIN_DATA_DIR+filename+'.csv', engine='python',sep=sep, encoding='utf-8')
+            except FileNotFoundError:
+                # 如果某位笨笨没有解压zip包，就自动解压
+                files = zipfile.ZipFile(Config.DATA_DIR+'BX-CSV-Dump.zip', 'r')
+                for f in files.namelist():
+                    files.extract(f, Config.DATA_DIR)
+                all_fearures = pd.read_csv(Config.ORIGIN_DATA_DIR+filename+'.csv', engine='python',sep=sep, encoding='utf-8')
             # \";\"  初始过滤的文件
             # ,      初始不需要过滤的文件
             data_dict = {"\";\"":self.filtrator(all_fearures), ',':all_fearures}
@@ -62,8 +77,7 @@ class DataLoad():
             print('UnicodeDecodeError:',e)
         except pd.errors.ParserError as e:
             print("connect error|pandas Error: %s" % e)
-
-
+        
     def filtrator(self, 
         f_data: "输入需要进行初步filter的数据"
         )->pd.DataFrame:
