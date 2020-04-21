@@ -48,6 +48,12 @@ blurb_series = origin_DATA.features.Blurb
 title_series = origin_DATA.features.Title
 
 #  预训练模型来自于 https://github.com/huggingface/transformers
+# 如果第一次使用，请先运行下面代码下载预训练模型并保存
+# bert-base-uncased为bert的名称，可以自行替换
+# tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+# model = TFBertModel.from_pretrained('bert-base-uncased')
+# model.save_pretrained('./bert-base-uncased')
+# tokenizer.save_pretrained('./bert-base-uncased')
 class pre_title_blurb():
     def __init__(self, lengths):
         self.max_sequence_length = lengths
