@@ -1,4 +1,4 @@
-# 推荐系统
+# 推荐系统-项目归档：后续更新在[StrayCamel247/Django_web](https://github.com/StrayCamel247/Django_web)
 集合了协同过滤基础推荐算法框架、nlp自然语言处理分析文本技术，利用tf2、blert工具构建，django/flask可视化
 
 ## Contributors
